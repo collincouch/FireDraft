@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>@ViewBag.Title - My ASP.NET MVC Application</title>
+        <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <meta name="viewport" content="width=device-width" />
+        @Styles.Render("~/bootstrap/css")
+        
+    </head>
+    <body>
+        <!-- Main Wrapper -->
+        <div id="wrapper">
+
+            <!-- Top Navigation -->
+            <div id="top-nav">
+
+            </div>
+            <!-- End of Top Navigation -->
+            <!-- Sidebar Menu -->
+            <aside class="fixed">
+                
+            </aside>
+            <!-- End of Sidebar Menu -->
+            <!-- Main Container -->
+            <div id="main-container">
+                @RenderBody()
+            </div>
+            <!-- End of Main Container -->
+            <!-- Footer -->
+            <footer>
+
+            </footer>
+                <!-- End of Footer -->
+        </div>
+        <!-- End of Main Wrapper -->
+
+        @Scripts.Render("~/bootstrap/js")
+        @Scripts.Render("~/libraries")
+        @RenderSection("scripts", required: false)
+    </body>
+</html>
