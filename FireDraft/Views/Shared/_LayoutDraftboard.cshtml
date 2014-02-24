@@ -13,17 +13,31 @@
         <div id="wrapper">
 
             <!-- Top Navigation -->
-            <div id="top-nav">
 
-            </div>
+                <div id="top-nav" class="skin-6 fixed">
+                    <div class="brand">
+                        <span>Endless</span>
+                        <span class="text-toggle"> Admin</span>
+                    </div><!-- /brand -->
+                    <button type="button" class="navbar-toggle pull-left" id="sidebarToggle">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <ul class="nav-notification clearfix">
+                        @Html.Partial("_LoginPartial")
+                    </ul>
+                </div>
+
             <!-- End of Top Navigation -->
             <!-- Sidebar Menu -->
             <aside class="fixed">
-                
+                test
             </aside>
             <!-- End of Sidebar Menu -->
             <!-- Main Container -->
             <div id="main-container">
+                @RenderSection("featured", required: false)
                 @RenderBody()
             </div>
             <!-- End of Main Container -->

@@ -1,4 +1,5 @@
-﻿@model FireDraft.Models.RegisterModel
+﻿@using System.Runtime.InteropServices
+@model FireDraft.Models.RegisterModel
 @{
     ViewBag.Title = "Register";
 }
@@ -7,31 +8,31 @@
     <h1>@ViewBag.Title.</h1>
     <h2>Create a new account.</h2>
 </hgroup>
-
-@using (Html.BeginForm()) {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary()
-
-    <fieldset>
-        <legend>Registration Form</legend>
-        <ol>
-            <li>
-                @Html.LabelFor(m => m.UserName)
-                @Html.TextBoxFor(m => m.UserName)
-            </li>
-            <li>
-                @Html.LabelFor(m => m.Password)
-                @Html.PasswordFor(m => m.Password)
-            </li>
-            <li>
-                @Html.LabelFor(m => m.ConfirmPassword)
-                @Html.PasswordFor(m => m.ConfirmPassword)
-            </li>
-        </ol>
-        <input type="submit" value="Register" />
-    </fieldset>
-}
-
+<div class="panel panel-default">
+    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "no-margin",data_validate="parsley"}))
+    {
+        @Html.AntiForgeryToken()
+        <div class="panel-heading">Register</div>
+    <div class="panel-body">
+        <div class="form-group">
+            @Html.LabelFor(m => m.UserName, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control input-sm parsley-validated", required = "true" })
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Password, new { @class = "control-label" })
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control input-sm parsley-validated", id="password", required = "true" })
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "control-label" })
+            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control input-sm parsley-validated", data_equalto="#password", required = "true" })
+        </div>
+        <div class="panel-footer text-right">
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+            
+    </div>
+    }
+</div>
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
 }
