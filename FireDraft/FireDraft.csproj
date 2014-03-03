@@ -182,6 +182,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\DraftBoardController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Filters\InitializeSimpleMembershipAttribute.cs" />
@@ -262,6 +263,7 @@
     <Content Include="css\colorbox\images\loading.gif" />
     <Content Include="css\colorbox\images\loading_background.png" />
     <Content Include="css\colorbox\images\overlay.png" />
+    <Content Include="css\dataTables.editor.css" />
     <Content Include="css\datepicker.css" />
     <Content Include="css\dropzone\dropzone.css" />
     <Content Include="css\dropzone\images\spritemap%402x.png" />
@@ -291,6 +293,7 @@
     <Content Include="css\pace.css" />
     <Content Include="css\prettify.css" />
     <Content Include="css\slider.css" />
+    <Content Include="css\TableTools.css" />
     <Content Include="css\wysiwyg-color.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\fontawesome-webfont.svg" />
@@ -299,11 +302,17 @@
     <Content Include="fonts\fontawesome-webfont.ttf" />
     <Content Include="fonts\fontawesome-webfont.woff" />
     <Content Include="fonts\FontAwesome.otf" />
+    <Content Include="js\dataTables.bootstrap.js" />
+    <Content Include="js\dataTables.editor.bootstrap.js" />
+    <Content Include="js\dataTables.editor.js" />
+    <Content Include="js\dataTables.editor.min.js" />
     <Content Include="js\jquery-1.11.0.js" />
     <Content Include="js\jquery-1.11.0.min.js" />
     <Content Include="js\jquery-ui-map\demos\json\demo.json" />
     <Content Include="js\jquery.colorbox.js" />
     <Content Include="js\jquery.cookie.js" />
+    <Content Include="js\jquery.dataTables-1.9.4.js" />
+    <Content Include="js\jquery.dataTables-1.9.4.min.js" />
     <Content Include="js\jquery.flot.js" />
     <Content Include="js\jquery.popupoverlay.js" />
     <Content Include="js\jquery.slimscroll.js" />
@@ -312,6 +321,8 @@
     <Content Include="js\morris.js" />
     <Content Include="js\parsley.js" />
     <Content Include="js\rapheal.js" />
+    <Content Include="js\TableTools.js" />
+    <Content Include="js\TableTools.min.js" />
     <Content Include="less\animations.less" />
     <Content Include="less\basic.less" />
     <Content Include="less\blog.less" />
@@ -596,6 +607,12 @@
     <Content Include="Views\Shared\_LayoutDraftboard.cshtml" />
     <Content Include="Views\DraftBoard\TopNav.cshtml" />
     <Content Include="Views\DraftBoard\SideNav.cshtml" />
+    <Content Include="Views\Admin\Index.cshtml" />
+    <Content Include="Views\Admin\Positions.cshtml" />
+    <Content Include="Views\Admin\Athletes.cshtml" />
+    <Content Include="Views\Admin\AthleticTeams.cshtml" />
+    <Content Include="Views\Admin\League.cshtml" />
+    <Content Include="Views\Admin\Users.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

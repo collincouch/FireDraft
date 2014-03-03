@@ -6,7 +6,10 @@
         <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
         <meta name="viewport" content="width=device-width" />
         @Styles.Render("~/bootstrap/css")
-        
+        @RenderSection("styles", required: false)
+        @Scripts.Render("~/bootstrap/js")
+        <script src="https://cdn.firebase.com/v0/firebase.js"></script>
+        <script src="https://cdn.firebase.com/v0/firebase-simple-login.js"></script>
     </head>
     <body>
         <!-- Main Wrapper -->
@@ -49,7 +52,7 @@
         </div>
         <!-- End of Main Wrapper -->
 
-        @Scripts.Render("~/bootstrap/js")
+        
         @Scripts.Render("~/libraries")
         @RenderSection("scripts", required: false)
     </body>

@@ -1,0 +1,493 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "title";
+
+}
+@section styles{
+    @Styles.Render("~/css/datatables")
+}
+<h2>title</h2>
+<div class="panel panel-default table-responsive">
+    <div class="panel-heading">Athletes</div>
+    <div class="padding-md clearfix">
+        <div id="dataTable_wrapper" class="dataTables_wrapper" role="grid">
+            <table class="table table-striped dataTable" id="dataTable" aria-describedby="dataTable_info">
+                <thead>
+                    <tr>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            Position
+                        </th>
+                        <th>
+                            Team
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts{
+    @Scripts.Render("~/js/datatables")
+}
+
+<script>
+        $(document).ready(function () {
+            var columns;
+            var editor;
+            var oTable;
+            var mData;
+            var records = [];
+            var arrPositions = [];
+            var arrAthleticTeams = [];
+            var numAthletes = 0;
+            var athletesRef = new Firebase('https://draftboard.firebaseio.com/Athletes/');
+            var positionsRef = new Firebase('https://draftboard.firebaseio.com/Positions/');
+            var athleticTeamsRef = new Firebase('https://draftboard.firebaseio.com/AthleticTeams/');
+            //console.log(athletesRef.toString());
+
+
+
+            
+            defineTableColumns();
+            definePositions(function () {
+                defineAthleticTeams(function () {
+                    defineEditor(function () {
+                        defineEvents(function () { });
+                    });
+                });
+                
+            });
+           
+              
+            
+
+            function defineTableColumns() {
+            columns = [
+                {
+                    mData: "Name",
+                    sTitle: "Name",
+                },
+                {
+                    mData: "Position.Abbreviation",
+                    sTitle: "Position",
+                    sDefaultContent:"",
+                },
+                {
+                    mData: "Team.Abbreviation",
+                    sTitle: "Team",
+                    sDefaultContent:"",
+                },
+            ];
+
+            }
+
+            function definePositions(callback) {
+                var numPositions=0;
+                positionsRef.once('value', function (snapShot) {
+                    numPositions = snapShot.numChildren();
+                    //console.log('numPositions ' + numPositions);
+                    var o = {};
+                    o.label = '** Select **';
+                    o.value = '';
+                    arrPositions.push(o);
+
+                    positionsRef.on('child_added', function (childSnapShot) {
+
+                        o = {};
+                        o.label = childSnapShot.val().Abbreviation;
+                        //o.value = childSnapShot.name();
+                        o.value = childSnapShot.name();
+                        //console.log('position: ' + JSON.stringify(childSnapShot.val()));
+                        arrPositions.push(o);
+                        if (arrPositions.length - 1 === numPositions)
+                            callback();
+                    });
+                });
+            }
+
+            function defineAthleticTeams(callback) {
+                var numAthleticTeams=0;
+                athleticTeamsRef.once('value', function (snapShot) {
+                    numAthleticTeams = snapShot.numChildren();
+                    //console.log('numAthleticTeams ' + numAthleticTeams);
+
+                    var o = {};
+                    o.label = '** Select **';
+                    o.value = '';
+                    arrAthleticTeams.push(o);
+
+                    athleticTeamsRef.on('child_added', function (childSnapShot) {
+
+                        o = {};
+                        o.label = childSnapShot.val().Location + ' ' + childSnapShot.val().Name;
+                        o.value = childSnapShot.name();
+                        arrAthleticTeams.push(o);
+                        if (arrAthleticTeams.length - 1 === numAthleticTeams)
+                            callback();
+                    });
+                });
+            }
+
+
+
+            function defineEditor(callback) {
+                console.log('defineEditor');
+                        editor = new $.fn.dataTable.Editor({
+                            "domTable": "#dataTable",
+                            "fields": [{
+                                "label": "Name:",
+                                "name": "Name",
+                                "attr": { "class": "form-control parsley-validated required", "placeholder": "Athlete name", "required": "true", "parsley-required": "true" },
+                            },
+                            {
+                                "label": "Position:",
+                                "name": "Position.id",
+                                "type": "select",
+                                "attr": { "class": "form-control parsley-validated required", "placeholder": "Position", "required": "true", "parsley-required": "true" },
+                                "ipOpts": arrPositions,
+                            },
+                            {
+
+                                "name": "Position.Abbreviation",
+                                "type": "hidden",
+
+                            },
+                            {
+                                "label": "Team:",
+                                "name": "Team.id",
+                                "type": "select",
+                                "attr": { "class": "form-control parsley-validated required", "placeholder": "Position", "required": "true", "parsley-required": "true" },
+                                "ipOpts": arrAthleticTeams,
+                            },
+                            {
+
+                                "name": "Team.Abbreviation",
+                                "type": "hidden",
+
+                            },
+                            ],
+                            "i18n": {
+                                "create": {
+                                    "title": "<h4>Enter athlete information, and click 'Create'</h4>",
+                                },
+                                "edit": {
+                                    "title": "<h4>Edit athlete information, and click 'Update'</h4>",
+                                },
+                                "remove": {
+                                    "title": "<h4>Delete your athlete.</h4>",
+                                    "confirm": { "1": "Are you sure you wish to delete this athlete?" }
+                                },
+                            },
+                            "ajax": function (method, url, data, successCallback, errorCallback) {
+
+                                var id = null;
+                                var obj = {};
+                                var objAth = {};
+                                var objPos = {};
+                                var objTeam={};
+
+                                console.log('data action ' + data.action);
+
+                                if (data.action === 'create') {
+                                    //alert(this.get('Position'));
+                                    //console.log('data.data ' + JSON.stringify(data.data));
+                                    
+                                    var positionId = data.data.Position.id;
+                                    var teamId = data.data.Team.id;
+
+                                    objAth.Name=data.data.Name;
+
+                                    obj = objAth;
+
+                                    objPos = getPositionByPositionId(positionId);
+                                    obj.Position = objPos;
+                                    obj.Position.id = positionId;
+
+                                    objTeam = getAthleticTeamByTeamId(teamId);
+                                    obj.Team = objTeam;
+                                    obj.Team.id = teamId;
+
+                                    try {
+                                        //athletesRef.off('child_added', athletesAdded);
+                                        id = athletesRef.push(obj, function (err) {
+                                            if (!err) {
+                                                
+                                                objAth.Position=null;
+                                               
+                                                positionsRef.
+                                                child(positionId).
+                                                child("Athletes").
+                                                child(id).
+                                                set(objAth, function (err) {
+                                                    objAth.Position = objPos;
+                                                    objAth.Team = null;
+
+                                                    athleticTeamsRef.
+                                                    child(teamId).
+                                                    child("Athletes").
+                                                    child(id).
+                                                    set(objAth, function (err) {
+                                                        if(!err)
+                                                            successCallback({ "id": id });
+                                                    });
+                                                });
+                                            
+
+                                            }
+                                            else
+                                                errorCallback();
+
+                                        }).name();
+
+                                    } catch (e) {
+                                        console.log('error ' + e);
+                                    }
+                                    
+                                
+                                }
+                                else if (data.action === 'edit') {
+                                    id = data.id;
+
+                                    var positionId = data.data.Position.id;
+                                    var teamId = data.data.Team.id;
+
+                                    objAth.Name = data.data.Name;
+
+                                    obj = objAth;
+
+                                    objPos = getPositionByPositionId(positionId);
+                                    obj.Position = objPos;
+
+                                    objTeam = getAthleticTeamByTeamId(teamId);
+                                    obj.Team = objTeam;
+
+                                    try {
+                                        //console.log(athletesRef.child(id).toString());
+
+                                        athletesRef.child(id).update(obj, function (err) {
+                                            //console.log('test');
+
+                                            if (!err) {
+                                                positionsRef.
+                                                    child(positionId).
+                                                    child("Athletes").
+                                                    child(id).
+                                                    remove(function (err) {
+                                                        if (!err)
+                                                        {
+                                                            athleticTeamsRef.
+                                                            child(teamId).
+                                                            child("Athletes").
+                                                            child(id).
+                                                            remove(function (err) {
+                                                                if (!err)
+                                                                {
+                                                                   objAth.Position = null;
+                                                                   positionsRef.
+                                                                   child(positionId).
+                                                                   child("Athletes").
+                                                                   child(id).
+                                                                   set(objAth, function (err) {
+                                                                       if (!err) {
+                                                                           objAth.Position = objPos;
+                                                                           objAth.Team = null;
+
+                                                                           athleticTeamsRef.
+                                                                           child(teamId).
+                                                                           child("Athletes").
+                                                                           child(id).
+                                                                           set(objAth, function (err) {
+                                                                               if (!err)
+                                                                                   successCallback({ "id": id });
+                                                                           });
+                                                                       }
+                                                                    });
+                                                                   
+                                                                }
+
+                                                            });
+                                                        }
+
+                                                    });
+                                            }
+                                            else
+                                                errorCallback();
+
+                                        });
+                                    } catch (e) {
+                                        console.log(JSON.stringify(e));
+                                    }
+
+                                }
+                                else if (data.action === 'remove') {
+
+                                    try {
+                                        var r = [];
+
+                                        athletesRef.child(data.data[0]).remove(function (err) {
+
+                                            if (!err) {
+                                                positionsRef.
+                                                   child(positionId).
+                                                   child("Athletes").
+                                                   child(data.data[0]).
+                                                   remove(function (err) {
+                                                       if (!err) {
+                                                           athleticTeamsRef.
+                                                            child(teamId).
+                                                            child("Athletes").
+                                                            child(data.data[0]).
+                                                            remove(function (err) {
+                                                                if (!err)
+                                                                {
+                                                                    successCallback({ "id": null });
+                                                                }
+                                                            });
+                                                       }
+                                                   });
+                                                //r = jQuery.removeFromArray(data.data[0], records);
+                                                //records = r;
+                                                
+                                            }
+
+
+                                        });
+                                    } catch (e) {
+
+                                    }
+
+                                }
+
+                            }
+                        });
+
+                      
+
+                        if(editor!=null)
+                            callback();
+
+            }
+
+
+
+            function defineEvents(callback) {
+                
+                editor.on('onOpen', function () {
+
+                    $('select', editor.node('Position.id')).on('change', function () {
+
+                        var positionId = $('select', editor.node('Position.id')).val();
+                        var position = getPositionByPositionId(positionId);
+                        editor.set('Position.Abbreviation',position.Abbreviation);
+                    });
+
+                    $('select', editor.node('Team.id')).on('change', function () {
+
+                        var teamId = $('select', editor.node('Team.id')).val();
+                        var team = getAthleticTeamByTeamId(teamId);
+                        editor.set('Team.Abbreviation', team.Abbreviation);
+
+                    });
+
+                });
+
+
+               
+                athletesRef.once('value', function (snap) {
+                    numAthletes = snap.numChildren();
+                   
+                    if (numAthletes === 0) {
+                        initializeDataTable();
+                    }
+
+                    athletesRef.on('child_added', athletesAdded);
+
+                    athletesRef.on('child_changed', athletesChanged);
+
+                    athletesRef.on('child_removed', athletesRemoved);
+
+                    callback();
+
+                });
+
+               
+
+            }
+
+
+
+            function initializeDataTable() {
+                //console.log('initialized');
+                oTable = $('#dataTable').dataTable({
+                    "sDom": "<'row'<'col-xs-6'T><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                    "aaData": records,
+                    "aoColumns": columns,
+                    "oTableTools": {
+                        "sRowSelect": "single",
+                        "aButtons": [
+                            { "sExtends": "editor_create", "editor": editor, "sButtonClass": "btn btn-primary" },
+                            { "sExtends": "editor_edit", "editor": editor, "sButtonClass": "btn btn-primary" },
+                            { "sExtends": "editor_remove", "editor": editor, "sButtonClass": "btn btn-warning" }
+                        ]
+                    },
+                    "bDestroy": true,
+
+
+                });
+            }
+
+
+          
+
+            var athletesAdded = function (snapShot) {
+                console.log('added');
+                athletesRef.child(snapShot.name()).on("value", function (childSnapShot) {
+                    //console.log(JSON.stringify(childSnapShot.val()));
+    
+                    var o = childSnapShot.val();
+                   
+                    
+                    o.DT_RowId = childSnapShot.name();
+
+                    records.push(o);
+                    //console.log('numAthletes ' + numAthletes);
+                    //console.log('record count ' + records.length);
+                    if (numAthletes == records.length)
+                        initializeDataTable();
+
+                });
+            };
+
+
+            function getPositionByPositionId(id) {
+                //console.log('getPositionByPositionId');
+                var position;
+                positionsRef.child(id).once('value', function (snapShot) {
+                    position = snapShot.val();
+                });
+
+                //console.log('position asdfasdf ' + JSON.stringify(position));
+
+                return position;
+            }
+
+            function getAthleticTeamByTeamId(id) {
+                var team;
+                athleticTeamsRef.child(id).once('value',function(snapShot){
+                    team =  snapShot.val();
+                });
+
+                //console.log('team ' + JSON.stringify(team));
+
+                return team;
+
+            }
+
+
+            
+        });
+</script>

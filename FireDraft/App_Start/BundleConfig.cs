@@ -37,6 +37,13 @@ namespace FireDraft
                         "~/js/modernizr-*",
                         "~/js/jquery.cookie.js"));
 
+            bundles.Add(new ScriptBundle("~/js/datatables").Include(
+                "~/js/jquery.dataTables-{version}.js",
+                "~/js/TableTools.js",
+                "~/js/dataTables.editor.js",
+                "~/js/dataTables.bootstrap.js",
+                "~/js/dataTables.editor.bootstrap.js"));
+
             // Use the development version of Modernizr to develop with and learn from. Then, when you're
             // ready for production, use the build tool at http://modernizr.com to pick only the tests you need.
             bundles.Add(new ScriptBundle("~/bundles/modernizr").Include(
@@ -67,6 +74,10 @@ namespace FireDraft
                     "~/css/endless.css",
                     "~/css/endless-skin.css"
                 ));
+
+            bundles.Add(new StyleBundle("~/css/datatables").
+                Include(
+                "~/css/TableTools.css"));
         }
     }
 }

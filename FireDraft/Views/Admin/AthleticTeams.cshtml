@@ -1,0 +1,324 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "title";
+
+}
+@section styles{
+    @Styles.Render("~/css/datatables")
+}
+<h2>title</h2>
+<div class="panel panel-default table-responsive">
+    <div class="panel-heading">Positions</div>
+    <div class="padding-md clearfix">
+        <div id="dataTable_wrapper" class="dataTables_wrapper" role="grid">
+            <table class="table table-striped dataTable" id="dataTable" aria-describedby="dataTable_info">
+                <thead>
+                    <tr>
+                        <th>
+                            Location
+                        </th>
+                        <th>
+                            Team Name
+                        </th>
+                        <th>
+                            Abbreviation
+                        </th>
+                        <th>
+                            Bye Week
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts{
+    @Scripts.Render("~/js/datatables")
+}
+
+<script>
+        $(document).ready(function () {
+            var columns;
+            var editor;
+            var oTable;
+            var mData;
+            var records = [];
+            var numAthleticTeams = 0;
+            var athleticTeamsRef = new Firebase('https://draftboard.firebaseio.com/AthleticTeams/');
+            console.log(athleticTeamsRef.toString());
+
+
+
+            defineEvents();
+            defineTableColumns();
+            defineEditor();
+
+
+            jQuery.removeFromArray = function (value, arr) {
+                //console.log('object to be removed ' + JSON.stringify(value));
+                return jQuery.grep(arr, function (elem, index) {
+                    //console.log(' removing ' + elem.DT_RowId);
+                    return elem.DT_RowId !== value;
+                });
+            };
+
+            function defineTableColumns() {
+                columns = [
+            { mData: "Location", sTitle: "Location" },
+            { mData: "Name", sTitle: "Name" },
+            { mData: "Abbreviation", sTitle: "Abbrev" },
+            { mData: "ByeWeek", sTitle: "Bye Week" },
+
+                ];
+
+            }
+
+            function defineEditor() {
+                editor = new $.fn.dataTable.Editor({
+                    "domTable": "#dataTable",
+                    "fields": [{
+                        "label": "Location:",
+                        "name": "Location",
+                        "attr": { "class": "form-control parsley-validated required", "placeholder": "Location", "required": "true", "parsley-required": "true" },
+                    }, 
+                    {
+                        "label": "Team Name:",
+                        "name": "Name",
+                        "attr": { "class": "form-control parsley-validated required", "placeholder": "Team Name", "required": "true", "parsley-required": "true" },
+                    },
+                    {
+                        "label": "Abbreviation:",
+                        "name": "Abbreviation",
+                        "attr": { "class": "form-control parsley-validated required", "placeholder": "Abbreviation", "required": "true", "parsley-required": "true" },
+                    }, 
+                    {
+                        "label": "Bye Week:",
+                        "name": "ByeWeek",
+                        "attr": { "class": "form-control parsley-validated required", "placeholder": "ByeWeek", "required": "true", "parsley-required": "true" },
+                    },
+                    {
+                        "name": "DT_RowId",
+                        "type": "hidden",
+                    }
+
+                    ],
+                    "i18n": {
+                        "create": {
+                            "title": "<h4>Enter athletic team information, and click 'Create'</h4>",
+                        },
+                        "edit": {
+                            "title": "<h4>Edit athletic team information, and click 'Update'</h4>",
+                        },
+                        "remove": {
+                            "title": "<h4>Delete athletic team.</h4>",
+                            "confirm": { "1": "Are you sure you wish to delete this position?" }
+                        },
+                    },
+                    "ajax": function (method, url, data, successCallback, errorCallback) {
+
+                        var id = null;
+                        var obj = {};
+
+                        //console.log('data action ' + data.action);
+
+                        if (data.action === 'create') {
+
+                            obj.Location = data.data.Location;
+                            obj.Name = data.data.Name;
+                            obj.Abbreviation = data.data.Abbreviation;
+                            obj.ByeWeek = data.data.ByeWeek;
+                            try {
+
+                                id = athleticTeamsRef.push(obj, function (err) {
+                                    if (!err) {
+                                        console.log('success ' + id);
+                                        successCallback({ "id": id });
+                                    }
+                                    else
+                                        errorCallback();
+
+                                }).name();
+
+                            } catch (e) {
+                                console.log('error ' + e);
+                            }
+
+                        }
+                        else if (data.action === 'edit') {
+                            id = data.id;
+                            //console.log('edit id' + data.id);
+                            obj.Location = data.data.Location;
+                            obj.Name = data.data.Name;
+                            obj.Abbreviation = data.data.Abbreviation;
+                            obj.ByeWeek = data.data.ByeWeek;
+
+                            try {
+                                //console.log(exercisesRef.child(id).toString());
+
+                                athleticTeamsRef.child(id).update(obj, function (err) {
+                                    //console.log('test');
+
+                                    successCallback({ "id": id });
+
+                                });
+                            } catch (e) {
+                                console.log(JSON.stringify(e));
+                            }
+
+                        }
+                        else if (data.action === 'remove') {
+
+                            try {
+                                var r = [];
+
+                                athleticTeamsRef.child(data.data[0]).remove(function (err) {
+
+                                    if (!err) {
+                                        //r = jQuery.removeFromArray(data.data[0], records);
+                                        //records = r;
+                                        successCallback({ "id": id });
+                                    }
+
+
+                                });
+                            } catch (e) {
+
+                            }
+
+                        }
+
+                    }
+                });
+
+                editor.on('onOpen', function () {
+
+                    $("div.DTE_Body_Content form").attr("parsley-validate", "");
+                    $("div.DTE_Body_Content form").parsley();
+                });
+
+                editor.on('onPreSubmit', function () {
+                    var f = $('form');
+                    if (f.css('display') != 'none') {
+                        var valid = f.parsley('validate');
+                        console.log('valid ' + valid);
+                        if (valid == false)
+                            return false;
+                    }
+                });
+
+
+
+
+
+            }
+
+
+
+            function defineEvents() {
+                athleticTeamsRef.on('value', function (snap) {
+                    numAthleticTeams = snap.numChildren();
+                    });
+                athleticTeamsRef.once('value', function(snap){
+                    //console.log('numAthleticTeams 4 ' + numAthleticTeams);
+                    athleticTeamsRef.on('child_added', athleticTeamsAdded);
+
+                    athleticTeamsRef.on('child_changed', athleticTeamsChanged);
+
+                    athleticTeamsRef.on('child_removed', athleticTeamsRemoved);
+                    if (numAthleticTeams === 0)
+                        initializeDataTable();
+
+                });
+
+            }
+
+
+
+            function initializeDataTable() {
+                //console.log('initialized');
+                oTable = $('#dataTable').dataTable({
+                    "sDom": "<'row'<'col-xs-6'T><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                    "aaData": records,
+                    "aoColumns": columns,
+                    "oTableTools": {
+                        "sRowSelect": "single",
+                        "aButtons": [
+                            { "sExtends": "editor_create", "editor": editor, "sButtonClass": "btn btn-primary" },
+                            { "sExtends": "editor_edit", "editor": editor, "sButtonClass": "btn btn-primary" },
+                            { "sExtends": "editor_remove", "editor": editor, "sButtonClass": "btn btn-warning" }
+                        ]
+                    },
+                    "bDestroy": true,
+
+
+                });
+            }
+
+            var athleticTeamsAdded = function (snapShot) {
+                //console.log('added');
+                athleticTeamsRef.child(snapShot.name()).on("value", function (childSnapShot) {
+                    console.log(JSON.stringify(childSnapShot.val()));
+                    var o = childSnapShot.val();
+                    o.DT_RowId = childSnapShot.name();
+
+                    records.push(o);
+                    //console.log('numAthleticTeams ' + numAthleticTeams);
+                    //console.log('record count ' + records.length);
+                    if (numAthleticTeams == records.length)
+                        initializeDataTable();
+
+                });
+            };
+
+
+            var athleticTeamsChanged = function (snapShot) {
+                //console.log('changed');
+
+
+                athleticTeamsRef.child(snapShot.name()).on("value", function (childSnapShot) {
+                    //console.log('plan changed ' + JSON.stringify(childSnapShot.val()));
+                    //console.log('record length ' + records.length);
+                    var o = childSnapShot.val();
+                    var i = 0;
+                    $.each(records, function () {
+                        //console.log('this dtrowid ' + this.DT_RowId + ' snap ' + childSnapShot.name());
+                        //console.log('snap name ' + childSnapshot.name());
+                        if (this.DT_RowId == childSnapShot.name()) {
+
+                            o = childSnapShot.val();
+                            o.DT_RowId = childSnapShot.name();
+                            return false;
+                        }
+                        i++;
+                    });
+                    records[i] = o;
+
+                    initializeDataTable();
+
+                });
+
+            }
+
+            var athleticTeamsRemoved = function (snapShot) {
+                //console.log('record length before ' + records.length);
+                var r = [];
+
+
+                athleticTeamsRef.child(snapShot.name()).on("value", function (childSnapShot) {
+                    //console.log('value ' + childSnapShot.name());
+
+                    r = jQuery.removeFromArray(childSnapShot.name(), records);
+                    //console.log('record length after ' + r.length);
+                    records = r;
+
+                    if(numAthleticTeams===records.length)
+                        initializeDataTable();
+                });
+
+
+            }
+
+
+        });
+</script>
