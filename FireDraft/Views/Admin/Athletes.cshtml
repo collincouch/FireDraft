@@ -259,11 +259,15 @@
 
                                     obj = objAth;
 
+                                    var athlete = getAthleteByAthleteIdId(id);
+
                                     objPos = getPositionByPositionId(positionId);
                                     obj.Position = objPos;
+                                    obj.Position.id = positionId;
 
                                     objTeam = getAthleticTeamByTeamId(teamId);
                                     obj.Team = objTeam;
+                                    obj.Team.id = teamId;
 
                                     try {
                                         //console.log(athletesRef.child(id).toString());
@@ -272,17 +276,24 @@
                                             //console.log('test');
 
                                             if (!err) {
-                                                positionsRef.
-                                                    child(positionId).
+                                                var posRef =  positionsRef.
+                                                    child(athlete.Position.id).
                                                     child("Athletes").
-                                                    child(id).
+                                                    child(id).ref();
+
+                                                console.log('posRef ' + posRef.toString());
+                                                posRef.
                                                     remove(function (err) {
+                                                        
                                                         if (!err)
                                                         {
-                                                            athleticTeamsRef.
-                                                            child(teamId).
+                                                            var athRef = athleticTeamsRef.
+                                                            child(athlete.Team.id).
                                                             child("Athletes").
-                                                            child(id).
+                                                            child(id).ref();
+
+                                                            console.log('athRef ' + athRef.toString());
+                                                            athRef.
                                                             remove(function (err) {
                                                                 if (!err)
                                                                 {
@@ -484,6 +495,18 @@
                 //console.log('team ' + JSON.stringify(team));
 
                 return team;
+
+            }
+
+            function getAthleteByAthleteIdId(id) {
+                var athlete;
+                athletesRef.child(id).once('value', function (snapShot) {
+                    athlete = snapShot.val();
+                });
+
+                //console.log('team ' + JSON.stringify(team));
+
+                return athlete;
 
             }
 
