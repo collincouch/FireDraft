@@ -135,8 +135,8 @@
 
                                 positionsRef.child(id).update(obj, function (err) {
                                     //console.log('test');
-
-                                    successCallback({ "id": id });
+                                    if(!err)
+                                        successCallback({ "id": id });
 
                                 });
                             } catch (e) {
@@ -250,52 +250,52 @@
             };
 
 
-            var positionsChanged = function (snapShot) {
-                console.log('changed');
+            //var positionsChanged = function (snapShot) {
+            //    console.log('changed');
 
 
-                positionsRef.child(snapShot.name()).on("value", function (childSnapShot) {
-                    //console.log('plan changed ' + JSON.stringify(childSnapShot.val()));
-                    //console.log('record length ' + records.length);
-                    var o = childSnapShot.val();
-                    var i = 0;
-                    $.each(records, function () {
-                        //console.log('this dtrowid ' + this.DT_RowId + ' snap ' + childSnapShot.name());
-                        //console.log('snap name ' + childSnapshot.name());
-                        if (this.DT_RowId == childSnapShot.name()) {
+            //    positionsRef.child(snapShot.name()).on("value", function (childSnapShot) {
+            //        //console.log('plan changed ' + JSON.stringify(childSnapShot.val()));
+            //        //console.log('record length ' + records.length);
+            //        var o = childSnapShot.val();
+            //        var i = 0;
+            //        $.each(records, function () {
+            //            //console.log('this dtrowid ' + this.DT_RowId + ' snap ' + childSnapShot.name());
+            //            //console.log('snap name ' + childSnapshot.name());
+            //            if (this.DT_RowId == childSnapShot.name()) {
 
-                            o = childSnapShot.val();
-                            o.DT_RowId = childSnapShot.name();
-                            return false;
-                        }
-                        i++;
-                    });
-                    records[i] = o;
+            //                o = childSnapShot.val();
+            //                o.DT_RowId = childSnapShot.name();
+            //                return false;
+            //            }
+            //            i++;
+            //        });
+            //        records[i] = o;
 
-                    initializeDataTable();
+            //        initializeDataTable();
 
-                });
+            //    });
 
-            }
+            //}
 
-            var positionsRemoved = function (snapShot) {
-                //console.log('record length before ' + records.length);
-                var r = [];
-
-
-                positionsRef.child(snapShot.name()).on("value", function (childSnapShot) {
-                    //console.log('value ' + childSnapShot.name());
-
-                    r = jQuery.removeFromArray(childSnapShot.name(), records);
-                    //console.log('record length after ' + r.length);
-                    records = r;
-
-                    if(numPositions===records.length)
-                        initializeDataTable();
-                });
+            //var positionsRemoved = function (snapShot) {
+            //    //console.log('record length before ' + records.length);
+            //    var r = [];
 
 
-            }
+            //    positionsRef.child(snapShot.name()).on("value", function (childSnapShot) {
+            //        //console.log('value ' + childSnapShot.name());
+
+            //        r = jQuery.removeFromArray(childSnapShot.name(), records);
+            //        //console.log('record length after ' + r.length);
+            //        records = r;
+
+            //        if(numPositions===records.length)
+            //            initializeDataTable();
+            //    });
+
+
+            //}
 
 
         });
