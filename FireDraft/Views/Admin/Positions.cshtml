@@ -7,7 +7,11 @@
 @section styles{
     @Styles.Render("~/css/datatables")
 }
-<h2>title</h2>
+<h2>Positions</h2>
+<ul class="breadcrumb">
+    <li><a href="Index">Index</a></li>
+    <li class="active">Positions</li>
+</ul>
 <div class="panel panel-default table-responsive">
     <div class="panel-heading">Positions</div>
     <div class="padding-md clearfix">
@@ -60,7 +64,7 @@
             function defineTableColumns() {
                 columns = [
             { mData: "Description", sTitle: "Description" },
-            { mData: "Abbreviati1on", sTitle: "Abbrev" },
+            { mData: "Abbreviation", sTitle: "Abbrev" },
 
                 ];
 
