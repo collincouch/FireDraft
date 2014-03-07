@@ -66,44 +66,68 @@
 
 <script>
     $(document).ready(function () {
+
+       
+
+        var rootRef = new Firebase('https://draftboard.firebaseio.com/');
         var positionsRef = new Firebase('https://draftboard.firebaseio.com/Positions/');
         var athleteValues = {},
             positionValues = {},
-       parsedAthletesTemplate = "",
-       parsedPositionsTabTemplate = "",
-       parsedPositionsTabBodyTemplate = "",
+            parsedAthletesTemplate = "",
+            parsedPositionsTabTemplate = "",
+            parsedPositionsTabBodyTemplate = "",
+            numPositions=0,
+            positionCount=0,
 
-       athletesText = $('#freeAgent').html(),
-       positionsTabText = $('#posTabs').html(),
-       positionsTabBodyText = $('#posTabsBody').html(),
 
-       posistionsTabTemplate = _.template(positionsTabText);
-        positionsTabBodyTemplate = _.template(positionsTabBodyText);
+            athletesText = $('#freeAgent').html(),
+            positionsTabText = $('#posTabs').html(),
+            positionsTabBodyText = $('#posTabsBody').html(),
+
+            posistionsTabTemplate = _.template(positionsTabText);
+            positionsTabBodyTemplate = _.template(positionsTabBodyText);
 
         positionsRef.
-            on("child_added", function (snap) {
+            once("value", function (snapShot) {
+                numPositions = snapShot.numChildren();
+                positionsRef.
+                  on("child_added", function (snap) {
 
-                positionValues = snap.val();
-                positionValues.Id = snap.name();
-                //console.log('snap ' + JSON.stringify(snap.val()));
+                      positionValues = snap.val();
+                      positionValues.Id = snap.name();
+                      //console.log('snap ' + JSON.stringify(snap.val()));
 
-                //if (positionValues != null) {
-                parsedPositionsTabTemplate += posistionsTabTemplate(positionValues);
-                $("#positionsTabsBlock").html(parsedPositionsTabTemplate);
+                      //if (positionValues != null) {
+                      parsedPositionsTabTemplate += posistionsTabTemplate(positionValues);
+                      $("#positionsTabsBlock").html(parsedPositionsTabTemplate);
 
-                //console.log('positionValues ' + JSON.stringify(positionValues));
+                      //console.log('positionValues ' + JSON.stringify(positionValues));
 
-                parsedPositionsTabBodyTemplate += positionsTabBodyTemplate(positionValues);
-                $("#positionsTabsBodyBlock").html(parsedPositionsTabBodyTemplate);
-                console.log('position ' + JSON.stringify(positionValues));
+                      parsedPositionsTabBodyTemplate += positionsTabBodyTemplate(positionValues);
+                      $("#positionsTabsBodyBlock").html(parsedPositionsTabBodyTemplate);
+                      //console.log('position ' + JSON.stringify(positionValues));
+
+
+                      positionCount += 1;
+
+                      
+                      if (positionCount === numPositions) {
+                          $('.tabPos').on('click', function () {
+                              $('#filter').val('');
+                              showAllAthletes();
+                          });
+                      }
+                  });
+
+
 
             });
 
-
+      
 
 
         //filter results based on query
-        function filter(selector, parentLi, query) {
+        function filter(selector, query) {
             query = $.trim(query); //trim white space
             query = query.replace(/ /gi, '|'); //add OR for regex query
 
@@ -116,33 +140,47 @@
         }
 
         $('#filter').keyup(function (event) {
-            var activeTab = $.trim($(".tab-bar .active a").text());
+            var activeTab = getActiveTabText();
 
             //if esc is pressed or nothing is entered
             if (event.keyCode == 27 || $(this).val() == '') {
                 //if esc is pressed we want to clear the value of search box
                 $(this).val('');
-             
+
                 //we want each row to be visible because if nothing
                 //is entered then all rows are matched.
-                
+
                 $('.' + activeTab).removeClass('visible').show().addClass('visible');
             }
- 
+
                 //if there is text, lets filter
             else {
-                
-                filter('.' + activeTab + ' .name', '.' + activeTab, $(this).val());
+
+                filter('.' + activeTab + ' .name', $(this).val());
             }
         })
 
+
+
+        function showAllAthletes() {
+            var actTab = getActiveTabText();
+            $('.Athletes .list-group-item').removeClass('visible').show().addClass('visible');
+
+        }
+
+        function getActiveTabText()
+        {
+            var activeTab = $.trim($(".tab-bar .active a").text());
+            return activeTab;
+        }
+       
     });
 </script>
 
 
 <script type="text/template" id="posTabs">
     <%abbrev=Abbreviation=='QB'%>
-    <li class="<%= abbrev ? 'active' : ''%>">
+    <li class="tabPos <%= abbrev ? 'active' : ''%>">
         <a href="#bodyBlock_<%=Id%>" data-toggle="tab">
             <i></i><%= Abbreviation %>
         </a>
