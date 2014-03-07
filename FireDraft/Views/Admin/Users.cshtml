@@ -42,6 +42,7 @@
         var mData;
         var records = [];
         var numLeagues = 0;
+        var userId;
    
         var usersRef = new Firebase('https://draftboard.firebaseio.com/Users/user');
         var leaguesRef = new Firebase('https://draftboard.firebaseio.com/Leagues');
@@ -56,6 +57,7 @@
                 child(snapShot.name()).
                 child("Leagues");
 
+                userId = childSnapShot.name();
 
                 userLeaguesRef.once("value", function(snap){
                     numLeagues = snap.numChildren();
@@ -68,9 +70,10 @@
                         child(snap.name()).
                         once("value",function(childSnap){
                             var o = childSnap.val();
+                            o.UserId = userId;
                             o.DT_RowId = childSnap.name();
                             records.push(o);
-
+                            
                             if(records.length===numLeagues)
                                 initializeDataTable(childSnapShot.name());
                         });
@@ -85,10 +88,10 @@
 
 
 
-        defineEvents();
+        
         defineTableColumns();
         defineEditor();
-
+        defineEvents();
 
         jQuery.removeFromArray = function (value, arr) {
             //console.log('object to be removed ' + JSON.stringify(value));
@@ -101,7 +104,7 @@
         function defineTableColumns() {
             columns = [
         { mData: "LeagueName", sTitle: "League Name", sDefaultContent:"" },
-        { mData: "Settings", sTitle: "Settings", sDefaultContent: "" },
+        { mData: "UserId", sTitle: "UserId", sDefaultContent: "" },
 
             ];
 
@@ -115,6 +118,11 @@
                     "name": "LeagueName",
                     "attr": { "class": "form-control parsley-validated required", "placeholder": "Location", "required": "true", "parsley-required": "true" },
                 },
+                {
+                    "label": "UserId:",
+                    "name": "UserId",
+
+                },
                 ],
                 "ajax": function (method, url, data, successCallback, errorCallback) {
 
@@ -126,13 +134,20 @@
                     if (data.action === 'create') {
 
                         obj.Name = data.data.LeagueName;
-
+                        console.log('userId ' + data.data.UserId);
                         try {
 
                             id = leaguesRef.push(obj, function (err) {
                                 if (!err) {
-                                    console.log('success ' + id);
-                                    successCallback({ "id": id });
+                                    usersRef.
+                                    child(data.data.UserId).
+                                    child("Leagues").
+                                    child(id).
+                                    set(Firebase.ServerValue.TIMESTAMP, function(err){
+                                        if(!err)
+                                            successCallback({ "id": id });
+                                    });
+                                    
                                 }
                                 else
                                     errorCallback();
@@ -222,7 +237,10 @@
             });
 
                
-                
+            editor.on('onOpen', function () {
+
+                    editor.set('UserId', "asdfsdaf");
+                });     
 
 
         }

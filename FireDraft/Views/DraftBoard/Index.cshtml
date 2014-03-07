@@ -4,15 +4,208 @@
     Layout = "~/Views/Shared/_LayoutDraftboard.cshtml";
 }
 
-<!DOCTYPE html>
+    @section headerscripts{
+        @Scripts.Render("~/js/underscore")
+    }
+    @section styles{
+        <style type="text/css">
+            #main-container {
+                margin-left:0px;
+            }
 
-<html>
-    <head>
-        <title>title</title>
-    </head>
-    <body>
-        <div>
-              jhjhjhj
+            .panel-body{
+                padding: 5px;
+            }
+
+            .form-control {
+                /*height: 20px;
+                padding-right: 30px;
+                padding-top: 15px;*/
+            }
+
+            .draftInputs {
+                padding-right: 0px;
+                padding-left: 0px;
+            }
+        </style>
+    }
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+
+                <div class="search-block">
+                    <div class="input-group">
+                        <input type="text" name="filter" id="filter" class="form-control input-sm" placeholder="search here...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default btn-sm" type="button"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div><!-- /input-group -->
+                </div>
+            </div>
+            <div class="panel-tab clearfix">
+                <ul id="positionsTabsBlock" class="tab-bar"></ul>
+            </div>
+            <div class="panel-body">
+                <div id="positionsTabsBodyBlock" class="tab-content">
+
+                </div>
+            </div>
         </div>
-    </body>
-</html>
+
+    </div>
+    <div class="col-md-4">
+
+    </div>
+    <div class="col-md-3">
+
+    </div>
+</div>
+    
+
+<script>
+    $(document).ready(function () {
+        var positionsRef = new Firebase('https://draftboard.firebaseio.com/Positions/');
+        var athleteValues = {},
+            positionValues = {},
+       parsedAthletesTemplate = "",
+       parsedPositionsTabTemplate = "",
+       parsedPositionsTabBodyTemplate = "",
+
+       athletesText = $('#freeAgent').html(),
+       positionsTabText = $('#posTabs').html(),
+       positionsTabBodyText = $('#posTabsBody').html(),
+
+       posistionsTabTemplate = _.template(positionsTabText);
+        positionsTabBodyTemplate = _.template(positionsTabBodyText);
+
+        positionsRef.
+            on("child_added", function (snap) {
+
+                positionValues = snap.val();
+                positionValues.Id = snap.name();
+                //console.log('snap ' + JSON.stringify(snap.val()));
+
+                //if (positionValues != null) {
+                parsedPositionsTabTemplate += posistionsTabTemplate(positionValues);
+                $("#positionsTabsBlock").html(parsedPositionsTabTemplate);
+
+                //console.log('positionValues ' + JSON.stringify(positionValues));
+
+                parsedPositionsTabBodyTemplate += positionsTabBodyTemplate(positionValues);
+                $("#positionsTabsBodyBlock").html(parsedPositionsTabBodyTemplate);
+                console.log('position ' + JSON.stringify(positionValues));
+
+            });
+
+
+
+
+        //filter results based on query
+        function filter(selector, parentLi, query) {
+            query = $.trim(query); //trim white space
+            query = query.replace(/ /gi, '|'); //add OR for regex query
+
+            $(selector).each(function () {
+                
+                ($(this).text().search(new RegExp(query, "i")) < 0) ?
+                $(this).parent().parent().parent().parent().hide().removeClass('visible') :
+                $(this).parent().parent().parent().parent().show().addClass('visible');
+            });
+        }
+
+        $('#filter').keyup(function (event) {
+            var activeTab = $.trim($(".tab-bar .active a").text());
+
+            //if esc is pressed or nothing is entered
+            if (event.keyCode == 27 || $(this).val() == '') {
+                //if esc is pressed we want to clear the value of search box
+                $(this).val('');
+             
+                //we want each row to be visible because if nothing
+                //is entered then all rows are matched.
+                
+                $('.' + activeTab).removeClass('visible').show().addClass('visible');
+            }
+ 
+                //if there is text, lets filter
+            else {
+                
+                filter('.' + activeTab + ' .name', '.' + activeTab, $(this).val());
+            }
+        })
+
+    });
+</script>
+
+
+<script type="text/template" id="posTabs">
+    <%abbrev=Abbreviation=='QB'%>
+    <li class="<%= abbrev ? 'active' : ''%>">
+        <a href="#bodyBlock_<%=Id%>" data-toggle="tab">
+            <i></i><%= Abbreviation %>
+        </a>
+    </li>
+</script>
+
+<script type="text/template" id="posTabsBody">
+    <%abbrev=Abbreviation=='QB'%>
+    <div id="bodyBlock_<%=Id%>" class="tab-pane fade in <%= abbrev ? 'active' : ''%>">
+
+
+        <% if(_.isNaN(Athletes)===false) {%>
+        <ul class="Athletes">
+            <% _.each(Athletes, function(athlete) { %>
+            <li id="1" class="<%=Abbreviation%> list-group-item visible">
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <%= athlete.PositionRanking %>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <img src="/img/football/ateam/thumb/th_<%=athlete.Team.Abbreviation%>.png" alt="<%=athlete.Team.Name%>" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+
+                        <div class="row">
+                            <div class="col-md-12 name">
+                                <%=athlete.Name%>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <%=athlete.Team.Name%> Bye: <%=athlete.Team.ByeWeek%>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="row">
+
+                            <div class="col-md-12 draftInputs">
+                                <input class="form-control" type="number" value="1">
+                            </div>
+                        </div>
+                        <div class="row">
+
+                            <div class="col-md-12 draftInputs">
+                                <button class="btn btn-xs btn-info" type="button">Draft</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </li>
+            <% }); %>
+        </ul>
+        <%} else { %>
+        <p>asdfsadf</p>
+        <%}%>
+    </div>
+</script>

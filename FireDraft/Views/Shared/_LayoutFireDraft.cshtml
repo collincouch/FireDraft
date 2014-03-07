@@ -32,14 +32,18 @@
                         @Html.Partial("_LoginPartial")
                     </ul>
                 </div>
+
+            <!-- End of Top Navigation -->
+            <!-- Sidebar Menu -->
+            <aside class="fixed">
+                test
+            </aside>
             <!-- End of Sidebar Menu -->
             <!-- Main Container -->
             <div id="main-container">
-                <div class="padding-md">
-                    @RenderSection("featured", required: false)
-
-                    @RenderBody()
-                </div>
+                @RenderSection("featured", required: false)
+               
+                @RenderBody()
             </div>
             <!-- End of Main Container -->
             <!-- Footer -->
