@@ -41,49 +41,60 @@
         var oTable;
         var mData;
         var records = [];
-        var numLeagues = 0;
-        var userId;
+
    
         var usersRef = new Firebase('https://draftboard.firebaseio.com/Users/user');
         var leaguesRef = new Firebase('https://draftboard.firebaseio.com/Leagues');
         //console.log(usersRef.toString());
         var usersAdded = function (snapShot) {
-            console.log('added');
-            usersRef.child(snapShot.name()).once("value", function (childSnapShot) {
-                //console.log(JSON.stringify(childSnapShot.val()));
-               
-                 $('#accordion3').append(renderAccordion(childSnapShot.name(),childSnapShot.val().UserName));
+            console.log('snapShot ' + JSON.stringify(snapShot.val()));
+            var userId = snapShot.name();
+            var numLeagues = 0;
+
+            $('#accordion3').append(renderAccordion(snapShot.name(), snapShot.val().UserName));
                 var userLeaguesRef = usersRef.
                 child(snapShot.name()).
                 child("Leagues");
 
-                userId = childSnapShot.name();
-
-                userLeaguesRef.once("value", function(snap){
-                    numLeagues = snap.numChildren();
-                });
-
-                if(numLeagues!==0){
-
-                    userLeaguesRef.on("child_added", function(snap){
-                        leaguesRef.
-                        child(snap.name()).
-                        once("value",function(childSnap){
-                            var o = childSnap.val();
-                            o.UserId = userId;
-                            o.DT_RowId = childSnap.name();
-                            records.push(o);
-                            
-                            if(records.length===numLeagues)
-                                initializeDataTable(childSnapShot.name());
-                        });
-                    });
-                }
-                else
-                    initializeDataTable(childSnapShot.name());
                 
 
-            });
+                
+
+                userLeaguesRef.once("value", function (snap) {
+                   
+                   
+
+                    numLeagues = snap.numChildren();
+                    
+                    if (numLeagues !== 0) {
+                        console.log('wtf ' + numLeagues);
+                        userLeaguesRef.on("child_added", function (leagueSnap) {
+                            //console.log('child added ' + leagueSnap.name());
+                            leaguesRef.
+                            child(leagueSnap.name()).
+                            once("value", function (leagueChildSnap) {
+                                console.log('ffjfjfjfjfj');
+                                var o = leagueChildSnap.val();
+                                //o.UserId = userId;
+                                o.DT_RowId = leagueChildSnap.name();
+                                records.push(o);
+                                console.log('records length ' + records.length);
+                                console.log('numLeagues ' + numLeagues);
+                                if (records.length == numLeagues) {
+
+                                    //console.log('records ' + JSON.stringify(records));
+                                    initializeDataTable(userId);
+                                }
+                            });
+                        });
+                    }
+                    else {
+                       
+                        initializeDataTable(userId);
+                    }
+
+                });
+
         };
 
 
@@ -103,9 +114,8 @@
 
         function defineTableColumns() {
             columns = [
-        { mData: "LeagueName", sTitle: "League Name", sDefaultContent:"" },
-        { mData: "UserId", sTitle: "UserId", sDefaultContent: "" },
-
+        { mData: "Name", sTitle: "League Name"},
+     
             ];
 
         }
@@ -144,8 +154,10 @@
                                     child("Leagues").
                                     child(id).
                                     set(Firebase.ServerValue.TIMESTAMP, function(err){
-                                        if(!err)
+                                        if (!err)
                                             successCallback({ "id": id });
+                                        else
+                                            errorCallback();
                                     });
                                     
                                 }
@@ -228,49 +240,46 @@
 
 
         function defineEvents() {
-            //console.log('userRef ' + usersRef.toString());
-            usersRef.once('value', function (snap) {
-                
+
                 usersRef.on('child_added', usersAdded);
-
-
-            });
-
-               
-            editor.on('onOpen', function () {
-
-                    editor.set('UserId', "asdfsdaf");
-                });     
-
 
         }
 
 
 
         function initializeDataTable(tableId) {
-            console.log('initialized');
-            oTable = $('#tbl_' + tableId).dataTable({
-                "sDom": "<'row'<'col-xs-6'T><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
-                "aaData": records,
-                "aoColumns": columns,
-                "oTableTools": {
-                    "sRowSelect": "single",
-                    "aButtons": [
-                        { "sExtends": "editor_create", "editor": editor, "sButtonClass": "btn btn-primary" },
-                        { "sExtends": "editor_edit", "editor": editor, "sButtonClass": "btn btn-primary" },
-                        { "sExtends": "editor_remove", "editor": editor, "sButtonClass": "btn btn-warning" }
-                    ]
-                },
-                "bDestroy": true,
+            //console.log('initialized ' + tableId);
+            try {
+                oTable = $('#tbl_' + tableId).dataTable({
+                    "sDom": "<'row'<'col-xs-6'T><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                    "aaData": records,
+                    "aoColumns": columns,
+                    "oTableTools": {
+                        "sRowSelect": "single",
+                        "aButtons": [
+                            { "sExtends": "editor_create", "editor": editor, "sButtonClass": "btn btn-primary" },
+                            { "sExtends": "editor_edit", "editor": editor, "sButtonClass": "btn btn-primary" },
+                            { "sExtends": "editor_remove", "editor": editor, "sButtonClass": "btn btn-warning" }
+                        ]
+                    },
+                    "bDestroy": true,
 
 
-            });
+                });
+            } catch (e) {
+                console.log(e);
+            }
+
+            if(oTable)
+                $('.btn').on('click', function () {
+                    editor.set('UserId', tableId);
+                });
         }
 
 
         function renderAccordion(collapseId, userName) {
-            console.log('collapseId ' + collapseId);
-           console.log('userName ' + userName);
+           // console.log('collapseId ' + collapseId);
+           //console.log('userName ' + userName);
             //console.log('collapseId ' + collapseId);
             var s = "<div class=\"panel\">"
                     + "<div class=\"row panel-heading\">"
@@ -295,9 +304,6 @@
                                 + "<tr>"
                                         + "<th>"
                                             + "League Name"
-                                        + "</th>"
-                                        + "<th class=\"hidden-xs\">"
-                                            + "Settings"
                                         + "</th>"
                                     + "</tr>"
                                 + "</thead>"
