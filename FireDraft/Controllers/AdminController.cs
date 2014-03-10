@@ -41,5 +41,20 @@ namespace FireDraft.Controllers
             return View();
         }
 
+        public ActionResult DraftStyle()
+        {
+            return View();
+        }
+
+        public ActionResult Settings()
+        {
+            return View();
+        }
+
+        public ActionResult LeagueSettings()
+        {
+            return View();
+        }
+
     }
 }

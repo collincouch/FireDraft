@@ -1,0 +1,208 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "title";
+
+}
+@section styles{
+    @Styles.Render("~/css/datatables")
+}
+<h2>Positions</h2>
+<ul class="breadcrumb">
+    <li><a href="Index">Index</a></li>
+    <li class="active">Settings</li>
+</ul>
+<div class="panel panel-default table-responsive">
+    <div class="panel-heading">Settings</div>
+    <div class="padding-md clearfix">
+        <div id="dataTable_wrapper" class="dataTables_wrapper" role="grid">
+            <table class="table table-striped dataTable" id="dataTable" aria-describedby="dataTable_info">
+                <thead>
+                    <tr>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            Description
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts{
+    @Scripts.Render("~/js/datatables")
+    <script>
+        $(document).ready(function () {
+            var columns;
+            var editor;
+            var oTable;
+            var mData;
+            var records = [];
+            var numSettings = 0;
+            var settingsRef = new Firebase('https://draftboard.firebaseio.com/DraftStyle/');
+
+            function definePositions(callback) {
+                var numPositions = 0;
+                positionsRef.once('value', function (snapShot) {
+                    numPositions = snapShot.numChildren();
+                    //console.log('numPositions ' + numPositions);
+                    var o = {};
+                    o.label = '** Select **';
+                    o.value = '';
+                    arrPositions.push(o);
+
+                    positionsRef.on('child_added', function (childSnapShot) {
+
+                        o = {};
+                        o.label = childSnapShot.val().Abbreviation;
+                        //o.value = childSnapShot.name();
+                        o.value = childSnapShot.name();
+                        //console.log('position: ' + JSON.stringify(childSnapShot.val()));
+                        arrPositions.push(o);
+                        if (arrPositions.length - 1 === numPositions)
+                            callback();
+                    });
+                });
+            }
+
+            function defineTableColumns() {
+                columns = [
+            { mData: "Category", sTitle: "Category" },
+            { mData: "Name", sTitle: "Name" },
+                ];
+
+            }
+
+
+            function defineEditor() {
+                editor = new $.fn.dataTable.Editor({
+                    "domTable": "#dataTable",
+                    "fields": [{
+                        "label": "Category:",
+                        "name": "Description",
+                        "attr": { "class": "form-control parsley-validated required", "placeholder": "Position name", "required": "true", "parsley-required": "true" },
+                    }, {
+                        "label": "Abbreviation:",
+                        "name": "Abbreviation",
+                        "attr": { "class": "form-control parsley-validated required", "placeholder": "Abbreviation", "required": "true", "parsley-required": "true" },
+                    }, {
+                        "name": "DT_RowId",
+                        "type": "hidden",
+                    }
+
+                    ],
+                    "i18n": {
+                        "create": {
+                            "title": "<h4>Enter position information, and click 'Create'</h4>",
+                        },
+                        "edit": {
+                            "title": "<h4>Edit position information, and click 'Update'</h4>",
+                        },
+                        "remove": {
+                            "title": "<h4>Delete your position.</h4>",
+                            "confirm": { "1": "Are you sure you wish to delete this position?" }
+                        },
+                    },
+                    "ajax": function (method, url, data, successCallback, errorCallback) {
+
+                        var id = null;
+                        var obj = {};
+
+                        //console.log('data action ' + data.action);
+
+                        if (data.action === 'create') {
+
+                            obj.Description = data.data.Description;
+                            obj.Abbreviation = data.data.Abbreviation;
+
+                            try {
+
+                                id = positionsRef.push(obj, function (err) {
+                                    if (!err) {
+                                        console.log('success ' + id);
+                                        successCallback({ "id": id });
+                                    }
+                                    else
+                                        errorCallback();
+
+                                }).name();
+
+                            } catch (e) {
+                                console.log('error ' + e);
+                            }
+
+                        }
+                        else if (data.action === 'edit') {
+                            id = data.id;
+                            //console.log('edit id' + data.id);
+                            obj.Description = data.data.Description;
+                            obj.Abbreviation = data.data.Abbreviation;
+
+                            try {
+                                //console.log(exercisesRef.child(id).toString());
+
+                                positionsRef.child(id).update(obj, function (err) {
+                                    //console.log('test');
+                                    if (!err)
+                                        successCallback({ "id": id });
+
+                                });
+                            } catch (e) {
+                                console.log(JSON.stringify(e));
+                            }
+
+                        }
+                        else if (data.action === 'remove') {
+
+                            try {
+                                var r = [];
+
+                                positionsRef.child(data.data[0]).remove(function (err) {
+
+                                    if (!err) {
+                                        //r = jQuery.removeFromArray(data.data[0], records);
+                                        //records = r;
+                                        successCallback({ "id": id });
+                                    }
+
+
+                                });
+                            } catch (e) {
+
+                            }
+
+                        }
+
+                    }
+                });
+
+                editor.on('onOpen', function () {
+
+                    $("div.DTE_Body_Content form").attr("parsley-validate", "");
+                    $("div.DTE_Body_Content form").parsley();
+                });
+
+                editor.on('onPreSubmit', function () {
+                    var f = $('form');
+                    if (f.css('display') != 'none') {
+                        var valid = f.parsley('validate');
+                        console.log('valid ' + valid);
+                        if (valid == false)
+                            return false;
+                    }
+                });
+
+
+
+
+
+            }
+
+
+
+        });
+
+    </script>
+}

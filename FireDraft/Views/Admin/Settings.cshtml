@@ -1,0 +1,242 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "title";
+
+}
+@section styles{
+    @Styles.Render("~/css/datatables")
+}
+<h2>Settings</h2>
+<ul class="breadcrumb">
+    <li><a href="Index">Index</a></li>
+    <li class="active">Settings</li>
+</ul>
+<div class="panel panel-default table-responsive">
+    <div class="panel-heading">Settings</div>
+    <div class="padding-md clearfix">
+        <div id="dataTable_wrapper" class="dataTables_wrapper" role="grid">
+            <table class="table table-striped dataTable" id="dataTable" aria-describedby="dataTable_info">
+                <thead>
+                    <tr>
+                        <th>
+                            Name
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts{
+    @Scripts.Render("~/js/datatables")
+<script>
+    $(document).ready(function () {
+        var columns;
+        var editor;
+        var oTable;
+        var mData;
+        var records = [];
+        var numSettings = 0;
+        var settingsRef = new Firebase('https://draftboard.firebaseio.com/Settings/');
+
+       
+
+        var settingsAdded = function (snapShot) {
+            console.log('added');
+            settingsRef.child(snapShot.name()).once("value", function (childSnapShot) {
+                //console.log(JSON.stringify(childSnapShot.val()));
+                var o = childSnapShot.val();
+                o.DT_RowId = childSnapShot.name();
+                //o.value = childSnapShot.name();
+
+                records.push(o);
+               
+                if (numSettings === records.length)
+                    initializeDataTable();
+
+            });
+        };
+
+
+        defineTableColumns();
+        defineEditor();
+        defineEvents();
+
+
+        function defineTableColumns() {
+            columns = [
+        { mData: "Name", sTitle: "Name" },
+            ];
+
+        }
+
+
+        function defineEditor() {
+            editor = new $.fn.dataTable.Editor({
+                "domTable": "#dataTable",
+                "fields": [{
+                    "label": "Name:",
+                    "name": "Name",
+                    "attr": { "class": "form-control parsley-validated required", "placeholder": "Setting name", "required": "true", "parsley-required": "true" },
+                }, {
+                    "name": "DT_RowId",
+                    "type": "hidden",
+                }
+
+                ],
+                "i18n": {
+                    "create": {
+                        "title": "<h4>Enter setting information, and click 'Create'</h4>",
+                    },
+                    "edit": {
+                        "title": "<h4>Edit setting information, and click 'Update'</h4>",
+                    },
+                    "remove": {
+                        "title": "<h4>Delete your setting.</h4>",
+                        "confirm": { "1": "Are you sure you wish to delete this setting?" }
+                    },
+                },
+                "ajax": function (method, url, data, successCallback, errorCallback) {
+
+                    var id = null;
+                    var obj = {};
+
+                    //console.log('data action ' + data.action);
+
+                    if (data.action === 'create') {
+
+                        obj.Name = data.data.Name;
+
+                        try {
+
+                            id = settingsRef.push(obj, function (err) {
+                                if (!err) {
+                                    settingsRef.
+                                        child(id).
+                                        setPriority(obj.Name, function () {
+                                            successCallback({ "id": id });
+                                        });
+                                    
+                                }
+                                else
+                                    errorCallback();
+
+                            }).name();
+
+                        } catch (e) {
+                            console.log('error ' + e);
+                        }
+
+                    }
+                    else if (data.action === 'edit') {
+                        id = data.id;
+                        //console.log('edit id' + data.id);
+                        obj.Name = data.data.Name;
+
+                        try {
+                            //console.log(exercisesRef.child(id).toString());
+
+                            settingsRef.child(id).update(obj, function (err) {
+                                //console.log('test');
+                                if (!err)
+                                    settingsRef.
+                                        child(id).
+                                        setPriority(obj.Name, function () {
+                                            successCallback({ "id": id });
+                                        });
+
+                            });
+                        } catch (e) {
+                            console.log(JSON.stringify(e));
+                        }
+
+                    }
+                    else if (data.action === 'remove') {
+
+                        try {
+                            var r = [];
+
+                            settingsRef.child(data.data[0]).remove(function (err) {
+
+                                if (!err) {
+                                    //r = jQuery.removeFromArray(data.data[0], records);
+                                    //records = r;
+                                    successCallback({ "id": id });
+                                }
+
+
+                            });
+                        } catch (e) {
+
+                        }
+
+                    }
+
+                }
+            });
+
+            editor.on('onOpen', function () {
+
+                $("div.DTE_Body_Content form").attr("parsley-validate", "");
+                $("div.DTE_Body_Content form").parsley();
+            });
+
+            editor.on('onPreSubmit', function () {
+                var f = $('form');
+                if (f.css('display') != 'none') {
+                    var valid = f.parsley('validate');
+                    console.log('valid ' + valid);
+                    if (valid == false)
+                        return false;
+                }
+            });
+
+
+
+
+
+        }
+
+        function defineEvents() {
+            settingsRef.on('value', function (snap) {
+                numSettings = snap.numChildren();
+
+                //console.log('numSettings ' + numSettings);
+                settingsRef.on('child_added', settingsAdded);
+
+                if (numSettings === 0)
+                    initializeDataTable();
+            });
+
+           
+
+                
+
+
+        }
+
+        function initializeDataTable() {
+            console.log('initialized');
+            oTable = $('#dataTable').dataTable({
+                "sDom": "<'row'<'col-xs-6'T><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                "aaData": records,
+                "aoColumns": columns,
+                "oTableTools": {
+                    "sRowSelect": "single",
+                    "aButtons": [
+                        { "sExtends": "editor_create", "editor": editor, "sButtonClass": "btn btn-primary" },
+                        { "sExtends": "editor_edit", "editor": editor, "sButtonClass": "btn btn-primary" },
+                        { "sExtends": "editor_remove", "editor": editor, "sButtonClass": "btn btn-warning" }
+                    ]
+                },
+                "bDestroy": true,
+
+
+            });
+        }
+
+    });
+
+    </script>
+}
