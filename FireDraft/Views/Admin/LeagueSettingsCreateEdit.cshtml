@@ -1,11 +1,11 @@
 ﻿@model string
 
 @{
-    ViewBag.Title = "League Settings";
+    ViewBag.Title = "Draft Board Setup";
 
 }
 @section styles{
-   
+   @Styles.Render("~/css/datatables")
 }
 <h2>League Settings</h2>
 <ul class="breadcrumb">
@@ -14,7 +14,7 @@
     <li class="active">Create/Edit</li>
 </ul>
 <div class="panel panel-default table-responsive">
-    <div class="panel-heading">Leagues</div>
+    <div class="panel-heading">Draft Board Setup</div>
     <div class="padding-md clearfix">
         <div class="row">
             <div class="col-md-10">
@@ -33,6 +33,9 @@
                                 </li>
                                 <li>
                                     <a href="#wizardContent3" data-toggle="tab">Step 3</a>
+                                </li>
+                                <li>
+                                    <a href="#wizardContent4" data-toggle="tab">Step 4</a>
                                 </li>
                             </ul>
                         </div>
@@ -75,21 +78,13 @@
                                     </div><!-- /form-group -->
                                 </div>
                                 <div class="tab-pane fade" id="wizardContent2">
-                                    <div class="form-group">
-                                        <label class="control-label col-lg-2">Phone</label>
-                                        <div class="col-lg-6">
-                                            <input type="text" class="form-control input-sm" placeholder="(XXX) XXXX XXX" data-required="true" data-type="phone">
-                                        </div><!-- /.col -->
-                                    </div><!-- /form-group -->
-                                    <div class="form-group">
-                                        <label class="control-label col-lg-2">Website</label>
-                                        <div class="col-lg-6">
-                                            <input type="text" class="form-control input-sm" placeholder="Website url" data-required="true" data-type="urlstrict">
-                                        </div><!-- /.col -->
-                                    </div><!-- /form-group -->
+                                    @Html.Partial("FantasyTeams")
                                 </div>
                                 <div class="tab-pane fade padding-md" id="wizardContent3">
-                                    <h4>Finish!</h4>
+                                    @Html.Partial("DraftOrder")
+                                </div>
+                                <div class="tab-pane fade padding-md" id="wizardContent4">
+                                    <h4>Finished</h4>
                                 </div>
                             </div>
                         </div>
@@ -101,7 +96,7 @@
 
                             <div class="pull-right" style="width:30%">
                                 <div class="progress progress-striped active m-top-sm m-bottom-none">
-                                    <div class="progress-bar progress-bar-success" id="wizardProgress" style="width:33%;">
+                                    <div class="progress-bar progress-bar-success" id="wizardProgress" style="width:25%;">
                                     </div>
                                 </div>
                             </div>
@@ -115,7 +110,8 @@
 @section scripts{
     @Scripts.Render("~/js/pace")
     @Scripts.Render("~/js/endless")
-
+    @Scripts.Render("~/js/datatables")
+@Scripts.Render("~/js/nestable")
 }
 
 <script>
@@ -126,8 +122,9 @@
         var mData;
         var records = [];
         var arrDraftStyles = [];
+        var numTeams = 0;
 
-
+        var fantasyTeamsRef = new Firebase('https://draftboard.firebaseio.com/FantasyTeams');
         var usersRef = new Firebase('https://draftboard.firebaseio.com/Users/user');
         var leaguesRef = new Firebase('https://draftboard.firebaseio.com/Leagues');
         var settingsRef = new Firebase('https://draftboard.firebaseio.com/Settings');
@@ -165,6 +162,9 @@
            
         getDraftSettings();
         defineEvents();
+        defineTableColumns();
+        defineEditor();
+        defineFantasyTeamEvents();
 
         function getDraftSettings()
                 {
@@ -256,20 +256,30 @@
                 },
                 onFormSubmit: function (isFormValid, event) {
                     event.preventDefault();
+                    //alert('testing form submit');
                     if (isFormValid) {
-                        saveFormWizard1(function () {
+
+                        
                             currentStep_1++;
 
                             if (currentStep_1 == 2) {
-                                
-                                $('#wizardDemo1 li:eq(1) a').tab('show');
-                                $('#wizardProgress').css("width", "66%");
+                                saveFormWizard1(function () {
+                                    $('#wizardDemo1 li:eq(1) a').tab('show');
+                                    $('#wizardProgress').css("width", "50%");
+
+                                    $('#prevStep1').attr('disabled', false);
+                                    $('#prevStep1').removeClass('disabled');
+                                });
+                            }
+                            else if (currentStep_1 == 3) {
+                                $('#wizardDemo1 li:eq(2) a').tab('show');
+                                $('#wizardProgress').css("width", "75%");
 
                                 $('#prevStep1').attr('disabled', false);
                                 $('#prevStep1').removeClass('disabled');
                             }
-                            else if (currentStep_1 == 3) {
-                                $('#wizardDemo1 li:eq(2) a').tab('show');
+                            else if (currentStep_1 == 4) {
+                                $('#wizardDemo1 li:eq(3) a').tab('show');
                                 $('#wizardProgress').css("width", "100%");
 
                                 $('#nextStep1').attr('disabled', true);
@@ -279,7 +289,7 @@
                             
                             return false;
 
-                        });
+                        //});
                        
                     }
                 }
@@ -359,6 +369,277 @@
 
 
         }
+
+
+
+        var teamAdded = function (snapShot) {
+            console.log('added');
+            fantasyTeamsRef.child(snapShot.name()).once("value", function (childSnapShot) {
+                //console.log(JSON.stringify(childSnapShot.val()));
+                var o = childSnapShot.val();
+                o.DT_RowId = childSnapShot.name();
+                //o.value = childSnapShot.name();
+
+                records.push(o);
+
+                if (numTeams === records.length)
+                    initializeDataTable();
+
+            });
+        };
+
+
+        
+
+
+        function defineTableColumns() {
+            columns = [
+        { mData: "FirstName", sTitle: "First Name" },
+        { mData: "LastName", sTitle: "Last Name" },
+        { mData: "Email", sTitle: "Email" },
+        { mData: "TeamName", sTitle: "Team Name" },
+            ];
+
+        }
+
+
+        function defineEditor() {
+            editor = new $.fn.dataTable.Editor({
+                "domTable": "#dataTable",
+                "fields": [{
+                    "label": "First Name:",
+                    "name": "FirstName",
+                    "attr": { "class": "form-control" ,"data-required":"true", "placeholder": "Owner First Name" },
+                },
+                {
+                    "label": "Last Name:",
+                    "name": "LastName",
+                    "attr": { "class": "form-control", "data-required": "true", "placeholder": "Owner Last Name" },
+                },
+                {
+                    "label": "Email:",
+                    "name": "Email",
+                    "attr": { "class": "form-control", "data-required": "true", "placeholder": "Owner Email" },
+                },
+                {
+                    "label": "Team Name:",
+                    "name": "TeamName",
+                    "attr": { "class": "form-control", "data-required": "true", "placeholder": "Fantasy Team Name" },
+                },
+                {
+                    "name": "DT_RowId",
+                    "type": "hidden",
+                }
+
+                ],
+                "i18n": {
+                    "create": {
+                        "title": "<h4>Enter fantasy owner and team information, and click 'Create'</h4>",
+                    },
+                    "edit": {
+                        "title": "<h4>Edit  fantasy owner and team information, and click 'Update'</h4>",
+                    },
+                    "remove": {
+                        "title": "<h4>Delete your fantasy owner and team.</h4>",
+                        "confirm": { "1": "Are you sure you wish to delete this?" }
+                    },
+                },
+                "ajax": function (method, url, data, successCallback, errorCallback) {
+
+                    var id = null;
+                    var obj = {};
+
+                    //console.log('data action ' + data.action);
+
+                    if (data.action === 'create') {
+
+                        obj.FirstName = data.data.FirstName;
+                        obj.LastName = data.data.LastName;
+                        obj.Email = data.data.Email;
+                        obj.TeamName = data.data.TeamName;
+
+                        try {
+
+                            id = fantasyTeamsRef.push(obj, function (err) {
+                                if (!err) {
+                                    leaguesRef.
+                                        child(leagueId).
+                                        child("FantasyTeams").
+                                        child(id).
+                                        set(Firebase.ServerValue.TIMESTAMP, function (err) {
+                                            if (!err)
+                                                successCallback({ "id": id });
+                                        });
+
+
+                                }
+                                else
+                                    errorCallback();
+
+                            }).name();
+
+                        } catch (e) {
+                            console.log('error ' + e);
+                        }
+
+                    }
+                    else if (data.action === 'edit') {
+                        id = data.id;
+                        //console.log('edit id' + data.id);
+                        obj.FirstName = data.data.FirstName;
+                        obj.LastName = data.data.LastName;
+                        obj.Email = data.data.Email;
+                        obj.TeamName = data.data.TeamName;
+
+                        try {
+                            //console.log(exercisesRef.child(id).toString());
+
+                            fantasyTeamsRef.child(id).update(obj, function (err) {
+                                //console.log('test');
+                                if (!err) {
+                                    leaguesRef.
+                                        child(leagueId).
+                                        child("FantasyTeams").
+                                        child(id).
+                                        set(Firebase.ServerValue.TIMESTAMP, function (err) {
+                                            if (!err)
+                                                successCallback({ "id": id });
+                                        });
+                                }
+                            });
+                        } catch (e) {
+                            console.log(JSON.stringify(e));
+                        }
+
+                    }
+                    else if (data.action === 'remove') {
+
+                        try {
+                            var r = [];
+
+                            fantasyTeamsRef.child(data.data[0]).remove(function (err) {
+
+                                if (!err) {
+                                    leaguesRef.
+                                        child(leagueId).
+                                        child("FantasyTeams").
+                                        child(data.data[0]).
+                                        remove(function (err) {
+                                            if (!err)
+                                                successCallback({ "id": id });
+                                        });
+                                }
+
+
+                            });
+                        } catch (e) {
+
+                        }
+
+                    }
+
+                }
+            });
+
+            editor.on('onOpen', function () {
+
+                $("div.DTE_Body_Content form").attr("data-parsley-validate", "");
+                
+            });
+
+            editor.on('onPreSubmit', function () {
+                
+                var f = $('div.DTE_Body_Content form');
+                if (f.css('display') != 'none') {
+                    var valid = f.parsley('validate');
+                    console.log('valid ' + valid);
+                    if (valid == false)
+                        return false;
+                }
+            });
+
+
+
+
+
+        }
+
+        function defineFantasyTeamEvents() {
+            console.log('test');
+            fantasyTeamsRef.on('value', function (snap) {
+                numTeams = snap.numChildren();
+
+                console.log('numTeams ' + numTeams);
+                fantasyTeamsRef.on('child_added', teamAdded);
+
+                if (numTeams === 0)
+                    initializeDataTable();
+            });
+
+
+
+
+
+
+        }
+
+        function initializeDataTable() {
+            console.log('initialized');
+            oTable = $('#dataTable').dataTable({
+                "sDom": "<'row'<'col-xs-6'T><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                "aaData": records,
+                "aoColumns": columns,
+                "oTableTools": {
+                    "sRowSelect": "single",
+                    "aButtons": [
+                        { "sExtends": "editor_create", "editor": editor, "sButtonClass": "btn btn-primary" },
+                        { "sExtends": "editor_edit", "editor": editor, "sButtonClass": "btn btn-primary" },
+                        { "sExtends": "editor_remove", "editor": editor, "sButtonClass": "btn btn-warning" }
+                    ]
+                },
+                "bDestroy": true,
+
+
+            });
+        }
+
+
+        $('#prevStep1').click(function () {
+
+            currentStep_1--;
+
+            if (currentStep_1 == 1) {
+
+                $('#wizardDemo1 li:eq(0) a').tab('show');
+                $('#wizardProgress').css("width", "50%");
+
+                $('#prevStep1').attr('disabled', true);
+                $('#prevStep1').addClass('disabled');
+
+                $('#wizardProgress').css("width", "25%");
+            }
+            else if (currentStep_1 == 2) {
+
+                $('#wizardDemo1 li:eq(1) a').tab('show');
+                $('#wizardProgress').css("width", "75%");
+
+                $('#wizardProgress').css("width", "50%");
+            }
+            else if (currentStep_1 == 3) {
+
+                $('#wizardDemo1 li:eq(2) a').tab('show');
+                $('#wizardProgress').css("width", "75%");
+
+                $('#nextStep1').attr('disabled', false);
+                $('#nextStep1').removeClass('disabled');
+
+                $('#wizardProgress').css("width", "75%");
+            }
+
+            return false;
+        });
+
+        $('.dd').nestable({maxDepth:1 });
 
     });
 </script>

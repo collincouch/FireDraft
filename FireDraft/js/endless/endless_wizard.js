@@ -89,36 +89,10 @@ $(function () {
         }
     });
 
-    $('#prevStep1').click(function () {
-
-        currentStep_1--;
-
-        if (currentStep_1 == 1) {
-
-            $('#wizardDemo1 li:eq(0) a').tab('show');
-            $('#wizardProgress').css("width", "66%");
-
-            $('#prevStep1').attr('disabled', true);
-            $('#prevStep1').addClass('disabled');
-
-            $('#wizardProgress').css("width", "33%");
-        }
-        else if (currentStep_1 == 2) {
-
-            $('#wizardDemo1 li:eq(1) a').tab('show');
-            $('#wizardProgress').css("width", "66%");
-
-            $('#nextStep1').attr('disabled', false);
-            $('#nextStep1').removeClass('disabled');
-
-            $('#wizardProgress').css("width", "66%");
-        }
-
-        return false;
-    });
+    
 
     $('#prevStep2').click(function () {
-
+        
         currentStep_2--;
 
         if (currentStep_2 == 1) {

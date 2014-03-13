@@ -347,6 +347,7 @@
     <Content Include="js\jquery.dataTables-1.9.4.js" />
     <Content Include="js\jquery.dataTables-1.9.4.min.js" />
     <Content Include="js\jquery.flot.js" />
+    <Content Include="js\jquery.nestable.js" />
     <Content Include="js\jquery.popupoverlay.js" />
     <Content Include="js\jquery.slimscroll.js" />
     <Content Include="js\jquery.sparkline.js" />
@@ -659,6 +660,8 @@
     <Content Include="Views\Admin\DraftStyle.cshtml" />
     <Content Include="Views\Admin\LeagueSettings.cshtml" />
     <Content Include="Views\Admin\LeagueSettingsCreateEdit.cshtml" />
+    <Content Include="Views\Admin\FantasyTeams.cshtml" />
+    <Content Include="Views\Admin\DraftOrder.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

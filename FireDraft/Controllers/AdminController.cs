@@ -60,5 +60,15 @@ namespace FireDraft.Controllers
         {
             return View();
         }
+
+        public PartialViewResult FantasyTeams(string id)
+        {
+            return PartialView();
+        }
+
+        public PartialViewResult DraftOrder(string id)
+        {
+            return PartialView();
+        }
     }
 }

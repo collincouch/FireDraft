@@ -270,10 +270,17 @@
                 console.log(e);
             }
 
-            if(oTable)
-                $('.btn').on('click', function () {
+            if (oTable) {
+                $('#ToolTables_tbl_' + tableId + "_0").on('click', function () {
                     editor.set('UserId', tableId);
                 });
+                $('#ToolTables_tbl_' + tableId + "_1").on('click', function () {
+                    editor.set('UserId', tableId);
+                });
+                $('#ToolTables_tbl_' + tableId + "_2").on('click', function () {
+                    editor.set('UserId', tableId);
+                });
+            }
         }
 
 

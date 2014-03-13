@@ -28,6 +28,9 @@ namespace FireDraft
             bundles.Add(new ScriptBundle("~/js/underscore").Include(
                 "~/js/underscore-{version}.js"));
 
+            bundles.Add(new ScriptBundle("~/js/nestable").Include(
+                "~/js/jquery.nestable.js"));
+
             bundles.Add(new ScriptBundle("~/js/pace").Include(
                 "~/js/pace.js"));
 
