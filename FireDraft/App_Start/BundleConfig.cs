@@ -28,6 +28,13 @@ namespace FireDraft
             bundles.Add(new ScriptBundle("~/js/underscore").Include(
                 "~/js/underscore-{version}.js"));
 
+            bundles.Add(new ScriptBundle("~/js/pace").Include(
+                "~/js/pace.js"));
+
+            bundles.Add(new ScriptBundle("~/js/endless").Include(
+                "~/js/endless/endless_wizard.js",
+                "~/js/endless/endless.js"));
+
             bundles.Add(new ScriptBundle("~/libraries").Include(
                         "~/js/parsley.js",
                         //"~/js/jquery.flot.js",

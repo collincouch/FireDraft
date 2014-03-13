@@ -56,5 +56,9 @@ namespace FireDraft.Controllers
             return View();
         }
 
+        public ViewResult LeagueSettingsCreateEdit(string id)
+        {
+            return View();
+        }
     }
 }

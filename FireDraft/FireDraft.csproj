@@ -352,6 +352,7 @@
     <Content Include="js\jquery.sparkline.js" />
     <Content Include="js\modernizr-2.6.2.js" />
     <Content Include="js\morris.js" />
+    <Content Include="js\pace.js" />
     <Content Include="js\parsley.js" />
     <Content Include="js\rapheal.js" />
     <Content Include="js\TableTools.js" />
@@ -403,6 +404,9 @@
     </Content>
     <Content Include="js\underscore-1.6.0.min.js.map">
       <DependentUpon>underscore-1.6.0.js</DependentUpon>
+    </Content>
+    <Content Include="js\parsley.min.js.map">
+      <DependentUpon>parsley.js</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="img\email_template\color1.png" />
@@ -654,6 +658,7 @@
     <Content Include="Views\Admin\Settings.cshtml" />
     <Content Include="Views\Admin\DraftStyle.cshtml" />
     <Content Include="Views\Admin\LeagueSettings.cshtml" />
+    <Content Include="Views\Admin\LeagueSettingsCreateEdit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
